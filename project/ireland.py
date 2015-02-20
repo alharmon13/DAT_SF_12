@@ -22,7 +22,7 @@ def main(begin_episode, end_episode):
   list_len = len(tfr_list)
   print avg_sum, avg_sum_h, list_len
   average = float(avg_sum_h/list_len)
-  print "ADegitverage =", average, ". Number of cases created during closed hours =", len(tfr_list)
+  print "Average =", average, ". Number of cases created during closed hours =", len(tfr_list)
 
 
 def getCases(desk, since_created_at, max_created_at, channel, status, per_page):
