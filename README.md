@@ -95,7 +95,7 @@ Project Schedule
 Student Project Repos:
 ----------------------
 | Student | Repo |
-| Ajay	Anand	| [sryballin/GeneralAssembly_DS](http://github.com/sryballin/GeneralAssembly_DS) |
+| Ajay	Anand	| [sryballin/GeneralAssembly-DS](https://github.com/skyballin/GeneralAssembly-DS) |
 | Zachary	Cousens	| [zfcousens/DAT_SF_12/tree/gh-pages/Project](http://github.com/zfcousens/DAT_SF_12/tree/gh-pages/Project) |
 | Carmen	Diaz Echauri	| [cde/?](http://github.com/cde/?) |
 | Deepthi	Duddempudi	| [DeepthiGA/Project](http://github.com/DeepthiGA/Project) |
