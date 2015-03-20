@@ -4,7 +4,6 @@ resolved, and time to first response (TFR)) to a CSV file named desk_data.csv
 
 """
 
-#import datetime
 import time
 import pytz
 import json
@@ -28,9 +27,18 @@ def main(begin_episode, end_episode):
   status = "resolved,closed"
   per_page = 100
   desk = desk_util.connectToDesk()
-  rows = writeDeskDataToCSV(desk, begin_episode_ts, end_episode_ts, channel, status, per_page)
+  case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr = getDeskData(desk, begin_episode_ts, end_episode_ts, channel, status, per_page)
+  writeDeskDataToCSV(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr)
+  print "Make sure lengths match: ", len(case_ids), len(created_at_dates), len(created_at_times), len(first_resolved_at_times), len(raw_tfr)
 
-def writeDeskDataToCSV(desk, since_created_at, max_created_at, channel, status, per_page):
+def writeDeskDataToCSV(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr):
+    rows = zip(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr)
+    with open('desk_data.csv','wb') as f:
+        w = csv.writer(f)
+        for row in rows:
+            w.writerow(row)
+
+def getDeskData(desk, since_created_at, max_created_at, channel, status, per_page):
     payload = {
       "since_created_at" : since_created_at,
       "max_created_at" : max_created_at,
@@ -82,19 +90,13 @@ def writeDeskDataToCSV(desk, since_created_at, max_created_at, channel, status, 
                 created_at_good_format not in excluded_dates and
                 time_delta < too_long and
                 entry["_links"]["replies"]["count"] > 0):
+                    print "got here"
 #write to appropriate lists
-                    case_ids.append(entry["id"])
                     created_at_dates.append(created_at_good_format)
                     created_at_times.append(sf_created_time)
                     first_resolved_at_times.append(sf_resolved_at_time)
                     raw_tfr.append(time_delta)
-#create CSV file
-                    with open('desk_data.csv','wb') as f:
-                        w = csv.writer(f)
-                        column_headers = ["case ID", "time created", "time first resolved", "tfr"]
-                        rows = zip(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr)
-                        for row in rows:
-                            w.writerow(row)
+                    case_ids.append(entry["id"])
 #http://stackoverflow.com/questions/17704244/writing-python-lists-to-columns-in-csv
       try:
         next_page_url = BASE_API_URL + cases_json["_links"]["next"]["href"]
@@ -102,8 +104,8 @@ def writeDeskDataToCSV(desk, since_created_at, max_created_at, channel, status, 
 
       except TypeError:
         break
-    return rows
-
+#return lists
+    return case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr
 
 if __name__ == "__main__":
   parser = OptionParser()
