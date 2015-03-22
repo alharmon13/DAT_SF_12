@@ -28,10 +28,10 @@ def main(begin_episode, end_episode):
   per_page = 100
   desk = desk_util.connectToDesk()
   case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr = getDeskData(desk, begin_episode_ts, end_episode_ts, channel, status, per_page)
-  writeDeskDataToCSV(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr)
+  writeDataToCSV(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr)
   print "Make sure lengths match: ", len(case_ids), len(created_at_dates), len(created_at_times), len(first_resolved_at_times), len(raw_tfr)
 
-def writeDeskDataToCSV(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr):
+def writeDataToCSV(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr):
     rows = zip(case_ids, created_at_dates, created_at_times, first_resolved_at_times, raw_tfr)
     with open('desk_data.csv','wb') as f:
         w = csv.writer(f)
@@ -47,16 +47,16 @@ def getDeskData(desk, since_created_at, max_created_at, channel, status, per_pag
       "per_page" : per_page
     }
     cases = desk.get("https://asana.desk.com/api/v2/cases/search", params=payload)
-
+    case_ids = []
+    created_at_times = []
+    created_at_dates = []
+    first_resolved_at_times = []
+    raw_tfr = []
     while cases:
       desk_util.avoidRateLimit(cases)
       cases_json = json.loads(cases.content)
       entries = (cases_json["_embedded"]["entries"])
-      case_ids = []
-      created_at_times = []
-      created_at_dates = []
-      first_resolved_at_times = []
-      raw_tfr = []
+      #import pdb;pdb.set_trace()
       for entry in entries:
           excluded_dates = ["2013-11-28", "2013-11-29", "2013-12-23", "2013-12-24", "2013-12-25",
                             "2013-12-31", "2013-12-30", "2014-02-17", "2014-05-26", "2014-07-04",
@@ -85,18 +85,19 @@ def getDeskData(desk, since_created_at, max_created_at, channel, status, per_pag
               sf_resolved_at_time = (datetime.time(sf_time_resolved_at_2))
 #create tfr timedelta
               time_delta = resolved_at_1 - created_at_1
+              time_delta_hours = (time_delta.total_seconds())/3600
 #write to appropriate lists
               if (entry["_links"]["assigned_group"]["href"] in specific_queues and
                 created_at_good_format not in excluded_dates and
                 time_delta < too_long and
                 entry["_links"]["replies"]["count"] > 0):
-                    print "got here"
 #write to appropriate lists
-                    created_at_dates.append(created_at_good_format)
+                    created_at_dates.append(sf_time_created_at_1)
                     created_at_times.append(sf_created_time)
                     first_resolved_at_times.append(sf_resolved_at_time)
-                    raw_tfr.append(time_delta)
+                    raw_tfr.append(time_delta_hours)
                     case_ids.append(entry["id"])
+                    #print len(case_ids)
 #http://stackoverflow.com/questions/17704244/writing-python-lists-to-columns-in-csv
       try:
         next_page_url = BASE_API_URL + cases_json["_links"]["next"]["href"]
